@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>AI Control Panel</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root {
+      --bg: #050814;
+      --bg-card: #0c1220;
+      --bg-card-soft: rgba(20, 28, 52, 0.85);
+      --accent: #4cd2ff;
+      --accent-2: #ffb15a;
+      --text: #f5f7ff;
+      --text-soft: #8b93b5;
+      --danger: #ff4b6b;
+      --radius: 18px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin:0;
+      background: radial-gradient(circle at top, #19213c 0, #050814 55%);
+      color: var(--text);
+      font-family: system-ui, -apple-system, "SF Pro Text", "Segoe UI", sans-serif;
+      height:100vh;
+      overflow:hidden;
+      display:flex;
+      flex-direction:column;
+    }
+    .root {
+      margin:8px;
+      border-radius: 22px;
+      padding:10px;
+      background: linear-gradient(135deg, rgba(76,210,255,0.15), transparent 55%),
+                  radial-gradient(circle at top left, rgba(255,177,90,0.18), transparent 60%),
+                  rgba(3,6,20,0.96);
+      border:1px solid rgba(120,170,255,0.4);
+      box-shadow:0 24px 70px rgba(0,0,0,0.9);
+      height:calc(100vh - 16px);
+      display:flex;
+      flex-direction:column;
+    }
+    .topbar{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:8px;
+      font-size:13px;
+    }
+    .logo{
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+    }
+    .logo-title{
+      text-transform:uppercase;
+      letter-spacing:.18em;
+      font-size:11px;
+      color:var(--text-soft);
+    }
+    .logo-main{
+      font-weight:600;
+      font-size:16px;
+    }
+    .top-status{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      font-size:11px;
+      color:var(--text-soft);
+    }
+    .pill{
+      padding:3px 9px;
+      border-radius:99px;
+      background:rgba(9,14,35,0.9);
+      border:1px solid rgba(114,160,255,0.7);
+      display:flex;
+      align-items:center;
+      gap:6px;
+    }
+    .dot{
+      width:8px;height:8px;border-radius:50%;
+      background:#37e0a8;
+      box-shadow:0 0 8px #37e0a8;
+    }
+    .layout{
+      flex:1;
+      display:grid;
+      grid-template-columns:260px minmax(0,1.2fr) minmax(260px,0.9fr);
+      gap:10px;
+      min-height:0;
+    }
+    @media(max-width:1100px){
+      .layout{
+        grid-template-columns:1fr;
+        grid-template-rows: minmax(0,1.1fr) auto auto;
+      }
+    }
+    .card{
+      background:var(--bg-card-soft);
+      border-radius:var(--radius);
+      border:1px solid rgba(90,130,210,0.8);
+      padding:10px;
+      display:flex;
+      flex-direction:column;
+      min-height:0;
+    }
+    .card-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:6px;
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:.16em;
+      color:var(--text-soft);
+    }
+    .badge{
+      padding:2px 8px;
+      border-radius:999px;
+      background:rgba(10,16,40,0.9);
+      border:1px solid rgba(135,180,255,0.9);
+      font-size:10px;
+    }
+    .apps{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      overflow-y:auto;
+      padding-right:2px;
+    }
+    .app-tile{
+      border-radius:14px;
+      padding:9px 9px;
+      background:linear-gradient(135deg, rgba(255,255,255,0.04), transparent 60%),
+                 rgba(10,16,36,0.96);
+      border:1px solid rgba(90,135,230,0.9);
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:8px;
+      cursor:pointer;
+      transition:.12s ease-out;
+    }
+    .app-tile:hover{
+      transform:translateY(-1px);
+      box-shadow:0 12px 30px rgba(0,0,0,0.85);
+      border-color:rgba(140,200,255,1);
+    }
+    .app-main{
+      display:flex;
+      flex-direction:column;
+      gap:3px;
+    }
+    .app-name{
+      font-size:13px;
+      font-weight:600;
+    }
+    .app-desc{
+      font-size:11px;
+      color:var(--text-soft);
+    }
+    .app-meta{
+      font-size:10px;
+      color:var(--text-soft);
+      display:flex;
+      flex-direction:column;
+      align-items:flex-end;
+      gap:4px;
+    }
+    .chip-small{
+      padding:2px 6px;
+      border-radius:999px;
+      border:1px solid rgba(70,110,210,0.9);
+      background:rgba(5,10,30,0.96);
+      font-size:9px;
+      text-transform:uppercase;
+      letter-spacing:.12em;
+    }
+    .perplexity-wrap{
+      flex:1;
+      border-radius:14px;
+      border:1px solid rgba(70,120,230,0.95);
+      overflow:hidden;
+      background:#050814;
+    }
+    .perplexity-wrap iframe{
+      width:100%;
+      height:100%;
+      border:none;
+    }
+    .right-col{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      min-height:0;
+    }
+    .status-grid{
+      display:grid;
+      grid-template-columns:1.2fr 1fr;
+      gap:6px;
+    }
+    @media(max-width:1100px){
+      .status-grid{ grid-template-columns:1fr 1fr; }
+    }
+    .status-block{
+      padding:8px;
+      border-radius:12px;
+      background:rgba(8,14,32,0.96);
+      border:1px solid rgba(90,135,230,0.9);
+      font-size:11px;
+      color:var(--text-soft);
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+    }
+    .status-title{
+      text-transform:uppercase;
+      letter-spacing:.16em;
+      font-size:9px;
+    }
+    .status-line{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:8px;
+    }
+    .status-badge{
+      padding:1px 7px;
+      border-radius:999px;
+      border:1px solid rgba(55,220,168,0.9);
+      background:rgba(6,26,28,0.96);
+      font-size:10px;
+      color:#37e0a8;
+    }
+    .status-badge.danger{
+      border-color:rgba(255,75,107,0.96);
+      background:rgba(40,10,22,0.96);
+      color:var(--danger);
+    }
+    .mini-feed{
+      flex:1;
+      border-radius:12px;
+      border:1px solid rgba(90,135,230,0.9);
+      background:rgba(8,14,30,0.98);
+      padding:8px;
+      overflow-y:auto;
+      font-size:11px;
+    }
+    .feed-title{
+      text-transform:uppercase;
+      letter-spacing:.16em;
+      font-size:9px;
+      color:var(--text-soft);
+      margin-bottom:4px;
+    }
+    .feed-item{
+      padding:5px 0;
+      border-bottom:1px solid rgba(50,70,110,0.6);
+      display:flex;
+      justify-content:space-between;
+      gap:8px;
+    }
+    .feed-item:last-child{ border-bottom:none; }
+    .feed-label{ color:var(--text); }
+    .feed-tag{
+      font-size:9px;
+      color:var(--text-soft);
+    }
+    .footer{
+      margin-top:6px;
+      font-size:10px;
+      color:var(--text-soft);
+      display:flex;
+      justify-content:space-between;
+      gap:8px;
+    }
+  </style>
+</head>
+<body>
+<div class="root">
+  <header class="topbar">
+    <div class="logo">
+      <div class="logo-title">Personal console</div>
+      <div class="logo-main">AI · Perplexity Terminal</div>
+    </div>
+    <div class="top-status">
+      <div class="pill">
+        <div class="dot" id="dot"></div>
+        <span id="net-label">online</span>
+      </div>
+      <div class="pill">
+        <span id="time"></span>
+      </div>
+    </div>
+  </header>
+
+  <main class="layout">
+    <!-- Левая колонка -->
+    <section class="card">
+      <div class="card-header">
+        <span>Навигация</span>
+        <span class="badge">Apps / Shortcuts</span>
+      </div>
+      <div class="apps">
+        <div class="app-tile" onclick="openApp('youtube')">
+          <div class="app-main">
+            <span class="app-name">YouTube</span>
+            <span class="app-desc">Видео, обзоры, фоновые плейлисты</span>
+          </div>
+          <div class="app-meta">
+            <span class="chip-small">media</span>
+            <span>yt</span>
+          </div>
+        </div>
+
+        <div class="app-tile" onclick="openApp('chrome')">
+          <div class="app-main">
+            <span class="app-name">Google Chrome</span>
+            <span class="app-desc">Браузер / логины / отладка</span>
+          </div>
+          <div class="app-meta">
+            <span class="chip-small">web</span>
+            <span>chrome</span>
+          </div>
+        </div>
+
+        <div class="app-tile" onclick="openApp('yandexmusic')">
+          <div class="app-main">
+            <span class="app-name">Я.Музыка</span>
+            <span class="app-desc">Фоновая музыка на рабочий день</span>
+          </div>
+          <div class="app-meta">
+            <span class="chip-small">audio</span>
+            <span>music</span>
+          </div>
+        </div>
+
+        <div class="app-tile" onclick="openApp('hik')">
+          <div class="app-main">
+            <span class="app-name">Hik‑Connect</span>
+            <span class="app-desc">Камеры склада / офиса</span>
+          </div>
+          <div class="app-meta">
+            <span class="chip-small">cctv</span>
+            <span>hik</span>
+          </div>
+        </div>
+
+        <div class="app-tile" onclick="openApp('happ')">
+          <div class="app-main">
+            <span class="app-name">Happ</span>
+            <span class="app-desc">Связь / рабочие чаты</span>
+          </div>
+          <div class="app-meta">
+            <span class="chip-small">comm</span>
+            <span>happ</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Центр: Perplexity -->
+    <section class="card">
+      <div class="card-header">
+        <span>Perplexity</span>
+        <span class="badge">Chat · Search · Tools</span>
+      </div>
+      <div class="perplexity-wrap">
+        <iframe src="https://www.perplexity.ai" referrerpolicy="no-referrer"></iframe>
+      </div>
+    </section>
+
+    <!-- Правая колонка -->
+    <section class="right-col">
+      <div class="card">
+        <div class="card-header">
+          <span>Система</span>
+          <span class="badge">Status</span>
+        </div>
+        <div class="status-grid">
+          <div class="status-block">
+            <div class="status-title">Сеть</div>
+            <div class="status-line">
+              <span>Интернет:</span>
+              <span class="status-badge" id="net-status">проверка…</span>
+            </div>
+            <div class="status-line">
+              <span>Perplexity:</span>
+              <span id="px-status">—</span>
+            </div>
+          </div>
+
+          <div class="status-block">
+            <div class="status-title">Сессия</div>
+            <div class="status-line">
+              <span>Устройство:</span>
+              <span id="dev-label">tablet</span>
+            </div>
+            <div class="status-line">
+              <span>Режим:</span>
+              <span class="status-badge">kiosk</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mini-feed">
+        <div class="feed-title">Быстрые сценарии</div>
+        <div class="feed-item">
+          <span class="feed-label">Поиск детали по артикулу</span>
+          <span class="feed-tag">/parts</span>
+        </div>
+        <div class="feed-item">
+          <span class="feed-label">Разобрать объявление с Avito</span>
+          <span class="feed-tag">/avito</span>
+        </div>
+        <div class="feed-item">
+          <span class="feed-label">План дня / задачи</span>
+          <span class="feed-tag">/plan</span>
+        </div>
+        <div class="feed-item">
+          <span class="feed-label">Перевод / письмо клиенту</span>
+          <span class="feed-tag">/mail</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <span>Ввод: голос через Perplexity · текстовая клавиатура</span>
+    <span>F1 — идеи · F2 — тех.вопросы · F3 — рынок</span>
+  </footer>
+</div>
+
+<script>
+  function tickTime() {
+    const el = document.getElementById('time');
+    const now = new Date();
+    el.textContent = now.toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit'});
+  }
+  setInterval(tickTime, 1000); tickTime();
+
+  async function checkNet(){
+    const netBadge = document.getElementById('net-status');
+    const px = document.getElementById('px-status');
+    const dot = document.getElementById('dot');
+    const netLabel = document.getElementById('net-label');
+    try {
+      const controller = new AbortController();
+      const t = setTimeout(()=>controller.abort(), 4000);
+      await fetch('https://www.perplexity.ai', {
+        method:'HEAD',
+        mode:'no-cors',
+        signal:controller.signal
+      });
+      clearTimeout(t);
+      netBadge.textContent = 'online';
+      netBadge.classList.remove('danger');
+      px.textContent = 'доступен';
+      px.style.color = '#37e0a8';
+      dot.style.background = '#37e0a8';
+      dot.style.boxShadow = '0 0 8px #37e0a8';
+      netLabel.textContent = 'online';
+    } catch(e){
+      netBadge.textContent = 'offline';
+      netBadge.classList.add('danger');
+      px.textContent = 'нет ответа';
+      px.style.color = '#ff4b6b';
+      dot.style.background = '#ff4b6b';
+      dot.style.boxShadow = '0 0 8px #ff4b6b';
+      netLabel.textContent = 'offline';
+    }
+  }
+  setInterval(checkNet, 10000); checkNet();
+
+  const appMap = {
+    youtube:  ["vnd.youtube://", "https://www.youtube.com"],
+    chrome:   ["googlechrome://", "https://www.google.com"],
+    yandexmusic: ["yandexmusic://", "https://music.yandex.ru/home"],
+    hik:      ["hik-connect://", "https://www.hik-connect.com"],
+    happ: ["market://launch?id=com.happproxy", "https://play.google.com/store/apps/details?id=com.happproxy"]
+  };
+
+  function openApp(key){
+    const targets = appMap[key];
+    if(!targets) return;
+    const native = targets[0], web = targets[1];
+
+    const iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    iframe.src = native;
+    document.body.appendChild(iframe);
+
+    setTimeout(()=>{
+      window.open(web, '_blank');
+      document.body.removeChild(iframe);
+    }, 400);
+  }
+</script>
+</body>
+</html>
+
